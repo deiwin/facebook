@@ -11,7 +11,7 @@ var (
 	ErrMissingState = errors.New("A Facebook redirect request is missing the 'state' value")
 	ErrInvalidState = errors.New("A Facebook redirect request's 'state' value does not match the session")
 	ErrMissingCode  = errors.New("A Facebook redirect request is missing the 'code' value")
-	ErrNoSuchPage   = errors.New("Unable to find the access token for the page the user is supposed to manage")
+	ErrNoSuchPage   = errors.New("The user does not have access to that page")
 )
 
 // Authenticator provides the authentication functionality for Facebook users
@@ -19,13 +19,17 @@ var (
 type Authenticator interface {
 	// AuthURL returns a Facebook URL the user should be redirect to. The user
 	// will then be asked to log in by Facebook at that URL and will be redirected
-	// back to our API by Facebook.
+	// back to the configured RedirectURL.
 	AuthURL(state string) string
-	// Get's the longer term user access token from the redirect request
+	// Token get's the longer term user access token from the redirect request.
+	// Also checks that the provided state matches that of the redirect request and
+	// returns "", ErrInvalidState if it doesn't.
 	Token(state string, r *http.Request) (*oauth2.Token, error)
-	// Client returns an *http.Client that can be used to make authenticated
+	// APIConnection returns a Connection that can be used to make authenticated
 	// requests to the Facebook API.
 	APIConnection(tok *oauth2.Token) Connection
+	// PageAccessToken retrieves a page access token of the specified page if the
+	// user has access to that page and returns "", ErrNoSuchPage if they don't.
 	PageAccessToken(tok *oauth2.Token, pageID string) (string, error)
 }
 

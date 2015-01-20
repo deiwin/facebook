@@ -5,14 +5,18 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/deiwin/luncher-api/facebook/model"
+	"github.com/deiwin/facebook/model"
 )
 
 // Connection provides access to the Facebook API graph methods
 type Connection interface {
 	// /me
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user#read
 	Me() (model.User, error)
 	// /me/accounts
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user/accounts#read
 	Accounts() (model.Accounts, error)
 }
 
