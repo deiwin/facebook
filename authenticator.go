@@ -25,16 +25,16 @@ type Authenticator interface {
 	// Also checks that the provided state matches that of the redirect request and
 	// returns "", ErrInvalidState if it doesn't.
 	Token(state string, r *http.Request) (*oauth2.Token, error)
-	// APIConnection returns a Connection that can be used to make authenticated
+	// APIConnection returns an API instance that can be used to make authenticated
 	// requests to the Facebook API.
-	APIConnection(tok *oauth2.Token) Connection
+	APIConnection(tok *oauth2.Token) API
 	// PageAccessToken retrieves a page access token of the specified page if the
 	// user has access to that page and returns "", ErrNoSuchPage if they don't.
 	PageAccessToken(tok *oauth2.Token, pageID string) (string, error)
 }
 
 // NewAuthenticator initializes and returns an Authenticator
-func NewAuthenticator(conf Config, api API) Authenticator {
+func NewAuthenticator(conf Config) Authenticator {
 	opts := &oauth2.Config{
 		ClientID:     conf.AppID,
 		ClientSecret: conf.AppSecret,
@@ -47,13 +47,11 @@ func NewAuthenticator(conf Config, api API) Authenticator {
 	}
 	return authenticator{
 		Config: opts,
-		api:    api,
 	}
 }
 
 type authenticator struct {
 	*oauth2.Config
-	api API
 }
 
 func (a authenticator) AuthURL(state string) string {
@@ -88,7 +86,7 @@ func (a authenticator) PageAccessToken(tok *oauth2.Token, pageID string) (string
 	return "", ErrNoSuchPage
 }
 
-func (a authenticator) APIConnection(tok *oauth2.Token) Connection {
+func (a authenticator) APIConnection(tok *oauth2.Token) API {
 	client := a.Config.Client(oauth2.NoContext, tok)
-	return a.api.Connection(client)
+	return NewAPI(client)
 }
