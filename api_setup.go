@@ -1,7 +1,7 @@
 /*
 Package facebook wraps the Facebook API in Go.
 
-See the [README on Github for more info](https://github.com/deiwin/facebook/blob/master/README.md).
+See the README on Github for more info: https://github.com/deiwin/facebook
 */
 package facebook
 
