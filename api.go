@@ -2,22 +2,28 @@ package facebook
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 
 	"github.com/deiwin/facebook/model"
 )
 
 // API provides access to the Facebook API graph methods
 type API interface {
-	// /me
+	// GET /me
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user#read
-	Me() (model.User, error)
-	// /me/accounts
+	Me() (*model.User, error)
+	// GET /me/accounts
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user/accounts#read
-	Accounts() (model.Accounts, error)
+	Accounts() (*model.Accounts, error)
+	// POST /{page-id}/feed
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/v2.2/page/feed#publish
+	PagePublish(pageAccessToken, pageID, message string) (*model.Post, error)
 }
 
 type api struct {
@@ -25,33 +31,57 @@ type api struct {
 	conf apiConf
 }
 
-func (a api) Me() (user model.User, err error) {
+func (a api) Me() (*model.User, error) {
 	resp, err := a.get("/me")
 	if err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(resp, &user)
-	return
+	var user *model.User
+	err = json.Unmarshal(resp, user)
+	return user, err
 }
 
-func (a api) Accounts() (accs model.Accounts, err error) {
+func (a api) Accounts() (*model.Accounts, error) {
 	resp, err := a.get("/me/accounts")
 	if err != nil {
-		return
+		return nil, err
 	}
-	err = json.Unmarshal(resp, &accs)
-	return
+	var accs *model.Accounts
+	err = json.Unmarshal(resp, accs)
+	return accs, err
 }
 
-func (a api) get(path string) (response []byte, err error) {
+func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, error) {
+	resp, err := a.post(fmt.Sprintf("/%s/feed", pageID), url.Values{
+		"message":      {message},
+		"access_token": {pageAccessToken},
+		// TODO add publish time
+	})
+	if err != nil {
+		return nil, err
+	}
+	var post *model.Post
+	err = json.Unmarshal(resp, post)
+	return post, err
+}
+
+func (a api) get(path string) ([]byte, error) {
 	resp, err := a.Get(a.conf.graphURL + path)
+	return parseResponse(resp, err)
+}
+
+func (a api) post(path string, data url.Values) ([]byte, error) {
+	resp, err := a.PostForm(a.conf.graphURL+path, data)
+	return parseResponse(resp, err)
+}
+
+func parseResponse(resp *http.Response, err error) ([]byte, error) {
 	if err != nil {
 		if resp != nil && resp.Body != nil {
 			resp.Body.Close()
 		}
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
-	response, err = ioutil.ReadAll(resp.Body)
-	return
+	return ioutil.ReadAll(resp.Body)
 }
