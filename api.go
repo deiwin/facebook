@@ -14,16 +14,20 @@ import (
 type API interface {
 	// GET /me
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user#read
+	// https://developers.facebook.com/docs/graph-api/reference/v2.3/user#read
 	Me() (*model.User, error)
 	// GET /me/accounts
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user/accounts#read
+	// https://developers.facebook.com/docs/graph-api/reference/v2.3/user/accounts#read
 	Accounts() (*model.Accounts, error)
 	// POST /{page-id}/feed
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.2/page/feed#publish
+	// https://developers.facebook.com/docs/graph-api/reference/v2.3/page/feed#publish
 	PagePublish(pageAccessToken, pageID, message string) (*model.Post, error)
+	// DELETE /{post-id}
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/v2.3/post#deleting
+	PostDelete(pageAccessToken, postID string) error
 }
 
 type api struct {
@@ -63,6 +67,24 @@ func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, 
 	var post *model.Post
 	err = json.Unmarshal(resp, post)
 	return post, err
+}
+
+func (a api) PostDelete(pageAccessToken, postID string) error {
+	return a.delete(postID, url.Values{
+		"access_token": {pageAccessToken},
+	})
+}
+
+func (a api) delete(path string, data url.Values) error {
+	url := fmt.Sprintf("%s/%s?%s", a.conf.graphURL, path, data.Encode())
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	if _, err = a.Do(req); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a api) get(path string) ([]byte, error) {
