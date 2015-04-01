@@ -40,9 +40,9 @@ func (a api) Me() (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	var user *model.User
-	err = json.Unmarshal(resp, user)
-	return user, err
+	var user model.User
+	err = json.Unmarshal(resp, &user)
+	return &user, err
 }
 
 func (a api) Accounts() (*model.Accounts, error) {
@@ -50,9 +50,9 @@ func (a api) Accounts() (*model.Accounts, error) {
 	if err != nil {
 		return nil, err
 	}
-	var accs *model.Accounts
-	err = json.Unmarshal(resp, accs)
-	return accs, err
+	var accs model.Accounts
+	err = json.Unmarshal(resp, &accs)
+	return &accs, err
 }
 
 func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, error) {
@@ -64,9 +64,9 @@ func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, 
 	if err != nil {
 		return nil, err
 	}
-	var post *model.Post
-	err = json.Unmarshal(resp, post)
-	return post, err
+	var post model.Post
+	err = json.Unmarshal(resp, &post)
+	return &post, err
 }
 
 func (a api) PostDelete(pageAccessToken, postID string) error {
