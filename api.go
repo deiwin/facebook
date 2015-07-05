@@ -16,14 +16,22 @@ type API interface {
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.3/user#read
 	Me() (*model.User, error)
+
 	// GET /me/accounts
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.3/user/accounts#read
 	Accounts() (*model.Accounts, error)
+
+	// GET /{page-id}
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/page/
+	Page(pageID string) (*model.Page, error)
+
 	// POST /{page-id}/feed
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.3/page/feed#publish
 	PagePublish(pageAccessToken, pageID, message string) (*model.Post, error)
+
 	// DELETE /{post-id}
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.3/post#deleting
@@ -53,6 +61,16 @@ func (a api) Accounts() (*model.Accounts, error) {
 	var accs model.Accounts
 	err = json.Unmarshal(resp, &accs)
 	return &accs, err
+}
+
+func (a api) Page(pageID string) (*model.Page, error) {
+	resp, err := a.get("/" + pageID)
+	if err != nil {
+		return nil, err
+	}
+	var page model.Page
+	err = json.Unmarshal(resp, &page)
+	return &page, err
 }
 
 func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, error) {

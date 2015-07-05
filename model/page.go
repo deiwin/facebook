@@ -1,17 +1,30 @@
 package model
 
 // Accounts is used to unmarshal the /me/accounts response
+//
+// https://developers.facebook.com/docs/graph-api/reference/v2.3/user/accounts#fields
 type Accounts struct {
 	Data []Page `json:"data"`
 }
 
 // Page represents a Facebook Page
 //
-// https://developers.facebook.com/docs/graph-api/reference/v2.2/page#readfields
+// https://developers.facebook.com/docs/graph-api/reference/v2.3/page#readfields
 type Page struct {
-	ID string `json:"id"`
-	// Additional field included in the /me/accounts response
-	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.2/user/accounts#fields
-	AccessToken string `json:"access_token,omitempty"`
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Location    Location `json:"location,omitempty"`
+	Phone       string   `json:"phone,omitempty"`
+	Website     string   `json:"website,omitempty"`
+	AccessToken string   `json:"access_token,omitempty"`
+}
+
+// Location holds the location information for a Facebook object, including the address
+// and the geographical location.
+//
+// https://developers.facebook.com/docs/graph-api/reference/location/
+type Location struct {
+	Street  string `json:"street"`
+	City    string `json:"city"`
+	Country string `json:"country"`
 }
