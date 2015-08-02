@@ -16,6 +16,7 @@ type Page struct {
 	Location    Location `json:"location,omitempty"`
 	Phone       string   `json:"phone,omitempty"`
 	Website     string   `json:"website,omitempty"`
+	Emails      []string `json:"emails,omitempty"`
 	AccessToken string   `json:"access_token,omitempty"`
 }
 
