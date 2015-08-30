@@ -15,12 +15,12 @@ import (
 type API interface {
 	// GET /me
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.3/user#read
+	// https://developers.facebook.com/docs/graph-api/reference/v2.4/user#read
 	Me() (*model.User, error)
 
 	// GET /me/accounts
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.3/user/accounts#read
+	// https://developers.facebook.com/docs/graph-api/reference/v2.4/user/accounts#read
 	Accounts() (*model.Accounts, error)
 
 	// GET /{page-id}
@@ -30,7 +30,7 @@ type API interface {
 
 	// POST /{page-id}/feed
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.3/page/feed#publish
+	// https://developers.facebook.com/docs/graph-api/reference/v2.4/page/feed#publish
 	PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.Post, error)
 
 	// GET /{post-id}
@@ -45,7 +45,7 @@ type API interface {
 
 	// DELETE /{post-id}
 	//
-	// https://developers.facebook.com/docs/graph-api/reference/v2.3/post#deleting
+	// https://developers.facebook.com/docs/graph-api/reference/v2.4/post#deleting
 	PostDelete(pageAccessToken, postID string) error
 }
 

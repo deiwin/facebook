@@ -2,14 +2,14 @@ package model
 
 // Accounts is used to unmarshal the /me/accounts response
 //
-// https://developers.facebook.com/docs/graph-api/reference/v2.3/user/accounts#fields
+// https://developers.facebook.com/docs/graph-api/reference/v2.4/user/accounts#fields
 type Accounts struct {
 	Data []Page `json:"data"`
 }
 
 // Page represents a Facebook Page
 //
-// https://developers.facebook.com/docs/graph-api/reference/v2.3/page#readfields
+// https://developers.facebook.com/docs/graph-api/reference/v2.4/page#readfields
 type Page struct {
 	ID          string   `json:"id"`
 	Name        string   `json:"name"`

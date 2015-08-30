@@ -8,7 +8,7 @@ package facebook
 import "net/http"
 
 const (
-	apiVersion = "v2.3"
+	apiVersion = "v2.4"
 )
 
 type apiConf struct {
