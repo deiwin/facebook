@@ -1,6 +1,7 @@
 package facebook
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -31,6 +32,16 @@ type API interface {
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.3/page/feed#publish
 	PagePublish(pageAccessToken, pageID, message string) (*model.Post, error)
+
+	// GET /{post-id}
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/v2.4/post#read
+	Post(pageAccessToken, postID string) (*model.Post, error)
+
+	// POST /{post-id}
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/v2.4/post#updating
+	PostUpdate(pageAccessToken, postID string, post *model.Post) error
 
 	// DELETE /{post-id}
 	//
@@ -87,6 +98,25 @@ func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, 
 	return &post, err
 }
 
+func (a api) Post(pageAccessToken, postID string) (*model.Post, error) {
+	resp, err := a.get("/"+postID, url.Values{
+		"access_token": {pageAccessToken},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var post model.Post
+	err = json.Unmarshal(resp, &post)
+	return &post, err
+}
+
+func (a api) PostUpdate(pageAccessToken, postID string, post *model.Post) error {
+	_, err := a.postJSON("/"+postID, url.Values{
+		"access_token": {pageAccessToken},
+	}, post)
+	return err
+}
+
 func (a api) PostDelete(pageAccessToken, postID string) error {
 	return a.delete(postID, url.Values{
 		"access_token": {pageAccessToken},
@@ -113,6 +143,16 @@ func (a api) get(path string, data url.Values) ([]byte, error) {
 
 func (a api) post(path string, data url.Values) ([]byte, error) {
 	resp, err := a.PostForm(a.conf.graphURL+path, data)
+	return parseResponse(resp, err)
+}
+
+func (a api) postJSON(path string, params url.Values, v interface{}) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s?%s", a.conf.graphURL, path, params.Encode())
+	data, err := json.Marshal(v)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := a.Client.Post(url, "application/json", bytes.NewReader(data))
 	return parseResponse(resp, err)
 }
 
