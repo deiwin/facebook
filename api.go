@@ -123,5 +123,30 @@ func parseResponse(resp *http.Response, err error) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	return ioutil.ReadAll(resp.Body)
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return bytes, err
+	}
+	return bytes, parseError(bytes)
+}
+
+func parseError(bytes []byte) error {
+	var resp struct {
+		Error *Error `json:"error,omitempty"`
+	}
+	err := json.Unmarshal(bytes, &resp)
+	if err != nil {
+		return err
+	}
+	return resp.Error
+}
+
+type Error struct {
+	Message string `json:"message"`
+	Type    string `json:"type"`
+	Code    int    `json:"code"`
+}
+
+func (e *Error) Error() string {
+	return e.Message
 }
