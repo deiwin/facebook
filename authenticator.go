@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/facebook"
 )
 
 var (
@@ -40,10 +41,7 @@ func NewAuthenticator(conf Config) Authenticator {
 		ClientSecret: conf.AppSecret,
 		RedirectURL:  conf.RedirectURL,
 		Scopes:       conf.Scopes,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://www.facebook.com/dialog/oauth",
-			TokenURL: "https://graph.facebook.com/oauth/access_token",
-		},
+		Endpoint:     facebook.Endpoint,
 	}
 	return authenticator{
 		Config: opts,
