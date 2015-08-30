@@ -31,7 +31,7 @@ type API interface {
 	// POST /{page-id}/feed
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.3/page/feed#publish
-	PagePublish(pageAccessToken, pageID, message string) (*model.Post, error)
+	PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.Post, error)
 
 	// GET /{post-id}
 	//
@@ -84,18 +84,16 @@ func (a api) Page(pageID string) (*model.Page, error) {
 	return &page, err
 }
 
-func (a api) PagePublish(pageAccessToken, pageID, message string) (*model.Post, error) {
-	resp, err := a.post(fmt.Sprintf("/%s/feed", pageID), url.Values{
-		"message":      {message},
+func (a api) PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.Post, error) {
+	resp, err := a.postJSON(fmt.Sprintf("/%s/feed", pageID), url.Values{
 		"access_token": {pageAccessToken},
-		// TODO add publish time
-	})
+	}, post)
 	if err != nil {
 		return nil, err
 	}
-	var post model.Post
-	err = json.Unmarshal(resp, &post)
-	return &post, err
+	var respPost model.Post
+	err = json.Unmarshal(resp, &respPost)
+	return &respPost, err
 }
 
 func (a api) Post(pageAccessToken, postID string) (*model.Post, error) {
