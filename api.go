@@ -44,7 +44,7 @@ type api struct {
 }
 
 func (a api) Me() (*model.User, error) {
-	resp, err := a.get("/me")
+	resp, err := a.get("/me", url.Values{})
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (a api) Me() (*model.User, error) {
 }
 
 func (a api) Accounts() (*model.Accounts, error) {
-	resp, err := a.get("/me/accounts")
+	resp, err := a.get("/me/accounts", url.Values{})
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (a api) Accounts() (*model.Accounts, error) {
 }
 
 func (a api) Page(pageID string) (*model.Page, error) {
-	resp, err := a.get("/" + pageID)
+	resp, err := a.get("/"+pageID, url.Values{})
 	if err != nil {
 		return nil, err
 	}
@@ -105,8 +105,9 @@ func (a api) delete(path string, data url.Values) error {
 	return nil
 }
 
-func (a api) get(path string) ([]byte, error) {
-	resp, err := a.Get(a.conf.graphURL + path)
+func (a api) get(path string, data url.Values) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s?%s", a.conf.graphURL, path, data.Encode())
+	resp, err := a.Get(url)
 	return parseResponse(resp, err)
 }
 
