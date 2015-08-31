@@ -31,12 +31,12 @@ type API interface {
 	// POST /{page-id}/feed
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.4/page/feed#publish
-	PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.Post, error)
+	PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.PostResponse, error)
 
 	// GET /{post-id}
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.4/post#read
-	Post(pageAccessToken, postID string) (*model.Post, error)
+	Post(pageAccessToken, postID string) (*model.PostResponse, error)
 
 	// POST /{post-id}
 	//
@@ -84,26 +84,26 @@ func (a api) Page(pageID string) (*model.Page, error) {
 	return &page, err
 }
 
-func (a api) PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.Post, error) {
+func (a api) PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.PostResponse, error) {
 	resp, err := a.postFormable(fmt.Sprintf("/%s/feed", pageID), url.Values{
 		"access_token": {pageAccessToken},
 	}, post)
 	if err != nil {
 		return nil, err
 	}
-	var respPost model.Post
+	var respPost model.PostResponse
 	err = json.Unmarshal(resp, &respPost)
 	return &respPost, err
 }
 
-func (a api) Post(pageAccessToken, postID string) (*model.Post, error) {
+func (a api) Post(pageAccessToken, postID string) (*model.PostResponse, error) {
 	resp, err := a.get("/"+postID, url.Values{
 		"access_token": {pageAccessToken},
 	})
 	if err != nil {
 		return nil, err
 	}
-	var post model.Post
+	var post model.PostResponse
 	err = json.Unmarshal(resp, &post)
 	return &post, err
 }

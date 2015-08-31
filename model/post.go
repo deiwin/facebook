@@ -20,6 +20,14 @@ type Post struct {
 	ChildAttachments     []Link    `json:"child_attachments,omitempty"`
 }
 
+// PostResponse also holds fields specific only to the Post object when
+// it's received as a response from Facebook, unlike the Post object which is
+// used to post to Facebook.
+type PostResponse struct {
+	Post
+	IsPublished bool `json:"is_published,omitempty"`
+}
+
 // Link is used as a pointer to images in a post
 //
 // https://developers.facebook.com/docs/graph-api/reference/v2.4/link
