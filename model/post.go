@@ -42,10 +42,10 @@ func (p *Post) AsForm() url.Values {
 	}
 	form.Set("published", strconv.FormatBool(p.Published))
 	if (p.ScheduledPublishTime != time.Time{}) {
-		form.Set("scheduled_publish_time", p.ScheduledPublishTime.Format(time.RFC3339))
+		form.Set("scheduled_publish_time", strconv.FormatInt(p.ScheduledPublishTime.Unix(), 10))
 	}
 	if (p.BackdatedTime != time.Time{}) {
-		form.Set("backdated_time", p.BackdatedTime.Format(time.RFC3339))
+		form.Set("backdated_time", strconv.FormatInt(p.BackdatedTime.Unix(), 10))
 	}
 	if p.ObjectAttachment != "" {
 		form.Set("object_attachment", p.ObjectAttachment)
