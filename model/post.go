@@ -1,6 +1,11 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
+)
 
 // Post represents a Facebook Post
 //
@@ -20,4 +25,26 @@ type Post struct {
 // https://developers.facebook.com/docs/graph-api/reference/v2.4/link
 type Link struct {
 	Link string `json:"link"`
+}
+
+func (p *Post) AsForm() url.Values {
+	form := url.Values{}
+	if p.Message != "" {
+		form.Set("message", p.Message)
+	}
+	form.Set("published", strconv.FormatBool(p.Published))
+	if (p.ScheduledPublishTime != time.Time{}) {
+		form.Set("scheduled_publish_time", p.ScheduledPublishTime.Format(time.RFC3339))
+	}
+	if (p.BackdatedTime != time.Time{}) {
+		form.Set("backdated_time", p.BackdatedTime.Format(time.RFC3339))
+	}
+	if p.ObjectAttachment != "" {
+		form.Set("object_attachment", p.ObjectAttachment)
+	}
+	for i, childAttachment := range p.ChildAttachments {
+		// This isn't well documented, but is the correct format for an array of objects
+		form.Set(fmt.Sprintf("%s[%d][%s]", "child_attachments", i, "link"), childAttachment.Link)
+	}
+	return form
 }

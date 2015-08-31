@@ -1,7 +1,6 @@
 package facebook
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -86,7 +85,7 @@ func (a api) Page(pageID string) (*model.Page, error) {
 }
 
 func (a api) PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.Post, error) {
-	resp, err := a.postJSON(fmt.Sprintf("/%s/feed", pageID), url.Values{
+	resp, err := a.postFormable(fmt.Sprintf("/%s/feed", pageID), url.Values{
 		"access_token": {pageAccessToken},
 	}, post)
 	if err != nil {
@@ -110,7 +109,7 @@ func (a api) Post(pageAccessToken, postID string) (*model.Post, error) {
 }
 
 func (a api) PostUpdate(pageAccessToken, postID string, post *model.Post) error {
-	_, err := a.postJSON("/"+postID, url.Values{
+	_, err := a.postFormable("/"+postID, url.Values{
 		"access_token": {pageAccessToken},
 	}, post)
 	return err
@@ -145,13 +144,14 @@ func (a api) post(path string, data url.Values) ([]byte, error) {
 	return parseResponse(resp, err)
 }
 
-func (a api) postJSON(path string, params url.Values, v interface{}) ([]byte, error) {
-	url := fmt.Sprintf("%s/%s?%s", a.conf.graphURL, path, params.Encode())
-	data, err := json.Marshal(v)
-	if err != nil {
-		return nil, err
+func (a api) postFormable(path string, data url.Values, formable model.Formable) ([]byte, error) {
+	form := formable.AsForm()
+	for k, vs := range data {
+		for _, v := range vs {
+			form.Add(k, v)
+		}
 	}
-	resp, err := a.Client.Post(url, "application/json", bytes.NewReader(data))
+	resp, err := a.PostForm(a.conf.graphURL+path, form)
 	return parseResponse(resp, err)
 }
 
