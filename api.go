@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 
 	"github.com/deiwin/facebook/model"
 )
@@ -177,7 +178,13 @@ func parseError(bytes []byte) error {
 	if err != nil {
 		return err
 	}
-	return resp.Error
+	// If we were to just return resp.Error, then in case an error didn't actually occur, the returned
+	// value would be `(*facebook.Error)(nil)`, which doesn't equal to nil and will make it look like
+	// there's always an error
+	if !reflect.ValueOf(resp.Error).IsNil() {
+		return resp.Error
+	}
+	return nil
 }
 
 type Error struct {
