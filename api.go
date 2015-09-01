@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strings"
 
 	"github.com/deiwin/facebook/model"
 )
@@ -97,9 +98,10 @@ func (a api) PagePublish(pageAccessToken, pageID string, post *model.Post) (*mod
 }
 
 func (a api) Post(pageAccessToken, postID string) (*model.PostResponse, error) {
-	resp, err := a.get("/"+postID, url.Values{
+	fieldsToInclude := getJsonTagsForType(reflect.TypeOf(model.PostResponse{}))
+	resp, err := a.getFields("/"+postID, url.Values{
 		"access_token": {pageAccessToken},
-	})
+	}, fieldsToInclude)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +123,14 @@ func (a api) PostDelete(pageAccessToken, postID string) error {
 	})
 }
 
+func getJsonTagsForType(t reflect.Type) []string {
+	tags := make([]string, t.NumField())
+	for i := 0; i < t.NumField(); i++ {
+		tags[i] = t.Field(i).Tag.Get("json")
+	}
+	return tags
+}
+
 func (a api) delete(path string, data url.Values) error {
 	url := fmt.Sprintf("%s/%s?%s", a.conf.graphURL, path, data.Encode())
 	req, err := http.NewRequest("DELETE", url, nil)
@@ -135,6 +145,12 @@ func (a api) delete(path string, data url.Values) error {
 
 func (a api) get(path string, data url.Values) ([]byte, error) {
 	url := fmt.Sprintf("%s/%s?%s", a.conf.graphURL, path, data.Encode())
+	resp, err := a.Get(url)
+	return parseResponse(resp, err)
+}
+
+func (a api) getFields(path string, data url.Values, fields []string) ([]byte, error) {
+	url := fmt.Sprintf("%s/%s?%s&fields=%s", a.conf.graphURL, path, data.Encode(), strings.Join(fields, ","))
 	resp, err := a.Get(url)
 	return parseResponse(resp, err)
 }

@@ -24,8 +24,10 @@ type Post struct {
 // it's received as a response from Facebook, unlike the Post object which is
 // used to post to Facebook.
 type PostResponse struct {
-	Post
-	IsPublished bool `json:"is_published,omitempty"`
+	ID                   string    `json:"id"`
+	Message              string    `json:"message"`
+	IsPublished          bool      `json:"is_published"`
+	ScheduledPublishTime time.Time `json:"scheduled_publish_time"`
 }
 
 // Link is used as a pointer to images in a post
