@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/deiwin/facebook/model"
 )
@@ -105,9 +106,17 @@ func (a api) Post(pageAccessToken, postID string) (*model.PostResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	var post model.PostResponse
+	// Wrap the actual PostResponse object to do necessary conversions
+	var post struct {
+		model.PostResponse
+		ScheduledPublishTime int64 `json:"scheduled_publish_time"`
+	}
 	err = json.Unmarshal(resp, &post)
-	return &post, err
+	postResponse := post.PostResponse
+	if post.ScheduledPublishTime != 0 {
+		postResponse.ScheduledPublishTime = time.Unix(post.ScheduledPublishTime, 0)
+	}
+	return &postResponse, err
 }
 
 func (a api) PostUpdate(pageAccessToken, postID string, post *model.Post) error {
