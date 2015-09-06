@@ -29,6 +29,7 @@ type PostResponse struct {
 	Message              string    `json:"message"`
 	IsPublished          bool      `json:"is_published"`
 	ScheduledPublishTime time.Time `json:"scheduled_publish_time"`
+	CreatedTime          time.Time `json:"created_time"`
 }
 
 type PhotoResponse struct {

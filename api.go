@@ -130,11 +130,15 @@ func (a api) Post(pageAccessToken, postID string) (*model.PostResponse, error) {
 	var post struct {
 		model.PostResponse
 		ScheduledPublishTime int64 `json:"scheduled_publish_time"`
+		CreatedTime          int64 `json:"created_time"`
 	}
 	err = json.Unmarshal(resp, &post)
 	postResponse := post.PostResponse
 	if post.ScheduledPublishTime != 0 {
 		postResponse.ScheduledPublishTime = time.Unix(post.ScheduledPublishTime, 0)
+	}
+	if post.CreatedTime != 0 {
+		postResponse.CreatedTime = time.Unix(post.CreatedTime, 0)
 	}
 	return &postResponse, err
 }
