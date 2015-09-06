@@ -16,6 +16,8 @@ import (
 	"github.com/deiwin/facebook/model"
 )
 
+const ISO8601 = "2006-01-02T15:04:05-0700"
+
 // API provides access to the Facebook API graph methods
 type API interface {
 	// GET /me
@@ -129,16 +131,18 @@ func (a api) Post(pageAccessToken, postID string) (*model.PostResponse, error) {
 	// Wrap the actual PostResponse object to do necessary conversions
 	var post struct {
 		model.PostResponse
-		ScheduledPublishTime int64 `json:"scheduled_publish_time"`
-		CreatedTime          int64 `json:"created_time"`
+		ScheduledPublishTime int64  `json:"scheduled_publish_time"`
+		CreatedTime          string `json:"created_time"`
 	}
 	err = json.Unmarshal(resp, &post)
 	postResponse := post.PostResponse
 	if post.ScheduledPublishTime != 0 {
 		postResponse.ScheduledPublishTime = time.Unix(post.ScheduledPublishTime, 0)
 	}
-	if post.CreatedTime != 0 {
-		postResponse.CreatedTime = time.Unix(post.CreatedTime, 0)
+	if post.CreatedTime != "" {
+		if postResponse.CreatedTime, err = time.Parse(ISO8601, post.CreatedTime); err != nil {
+			return nil, err
+		}
 	}
 	return &postResponse, err
 }
