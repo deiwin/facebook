@@ -1,9 +1,12 @@
 package facebook
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -34,6 +37,11 @@ type API interface {
 	//
 	// https://developers.facebook.com/docs/graph-api/reference/v2.4/page/feed#publish
 	PagePublish(pageAccessToken, pageID string, post *model.Post) (*model.PostResponse, error)
+
+	// POST /{page_id}/photos
+	//
+	// https://developers.facebook.com/docs/graph-api/reference/page/photos/#Creating
+	PagePhotoCreate(pageAccessToken, pageID string, photo *model.Photo) (*model.PhotoResponse, error)
 
 	// GET /{post-id}
 	//
@@ -96,6 +104,18 @@ func (a api) PagePublish(pageAccessToken, pageID string, post *model.Post) (*mod
 	var respPost model.PostResponse
 	err = json.Unmarshal(resp, &respPost)
 	return &respPost, err
+}
+
+func (a api) PagePhotoCreate(pageAccessToken, pageID string, photo *model.Photo) (*model.PhotoResponse, error) {
+	additionalData := photo.AsForm()
+	additionalData.Add("access_token", pageAccessToken)
+	resp, err := a.postMultipartForm(fmt.Sprintf("/%s/photos", pageID), "photo.jpeg", photo.Photo, additionalData)
+	if err != nil {
+		return nil, err
+	}
+	var respPhoto model.PhotoResponse
+	err = json.Unmarshal(resp, &respPhoto)
+	return &respPhoto, err
 }
 
 func (a api) Post(pageAccessToken, postID string) (*model.PostResponse, error) {
@@ -167,6 +187,48 @@ func (a api) getFields(path string, data url.Values, fields []string) ([]byte, e
 func (a api) post(path string, data url.Values) ([]byte, error) {
 	resp, err := a.PostForm(a.conf.graphURL+path, data)
 	return parseResponse(resp, err)
+}
+
+func (a api) postMultipartForm(path string, filename string, reader io.Reader, additionalData url.Values) ([]byte, error) {
+	multipartReader, contentType, err := createMultipartForm(filename, reader, additionalData)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", a.conf.graphURL+path, multipartReader)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := a.Do(req)
+	return parseResponse(resp, err)
+}
+
+func createMultipartForm(filename string, reader io.Reader, additionalData url.Values) (*bytes.Buffer, string, error) {
+	// Prepare a form that you will submit to that URL.
+	var b bytes.Buffer
+	multipartWriter := multipart.NewWriter(&b)
+	defer multipartWriter.Close()
+
+	formFileWriter, err := multipartWriter.CreateFormFile("source", filename)
+	if err != nil {
+		return nil, "", err
+	}
+	if _, err = io.Copy(formFileWriter, reader); err != nil {
+		return nil, "", err
+	}
+	for key, vals := range additionalData {
+		for _, val := range vals {
+			formFieldWriter, err := multipartWriter.CreateFormField(key)
+			if err != nil {
+				return nil, "", err
+			}
+			if _, err = formFieldWriter.Write([]byte(val)); err != nil {
+				return nil, "", err
+			}
+		}
+	}
+	return &b, multipartWriter.FormDataContentType(), nil
 }
 
 func (a api) postFormable(path string, data url.Values, formable model.Formable) ([]byte, error) {

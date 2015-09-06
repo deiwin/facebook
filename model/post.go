@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"strconv"
 	"time"
@@ -28,6 +29,16 @@ type PostResponse struct {
 	Message              string    `json:"message"`
 	IsPublished          bool      `json:"is_published"`
 	ScheduledPublishTime time.Time `json:"scheduled_publish_time"`
+}
+
+type PhotoResponse struct {
+	ID     string `json:"id"`
+	PostID string `json:"post_id"`
+}
+
+type Photo struct {
+	Post
+	Photo io.Reader
 }
 
 // Link is used as a pointer to images in a post
@@ -58,3 +69,7 @@ func (p *Post) AsForm() url.Values {
 	}
 	return form
 }
+
+// func (p *Photo) AsForm() url.Values {
+// 	return p.Post.AsForm()
+// }
